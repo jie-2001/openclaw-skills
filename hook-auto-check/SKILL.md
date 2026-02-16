@@ -2,6 +2,8 @@
 
 _在每次新对话开始时自动检查并调整 Hook 状态_
 
+> **测试版本 v1.0.1** - 用于测试 word_update Skill 上传功能
+
 ## 概述
 
 本 Skill 用于在新对话开始时自动检查并调整 session-memory hook 状态，确保：
