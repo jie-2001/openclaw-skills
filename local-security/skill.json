@@ -1,0 +1,19 @@
+{
+  "name": "local-guardian",
+  "version": "1.0.0",
+  "description": "本地安全防线 skill - 提供第二层安全防护，包括安装前审计、实时监控、文件完整性检查",
+  "author": "local",
+  "category": "Security",
+  "trustScore": 100,
+  "permissions": {
+    "fileRead": true,
+    "fileWrite": true,
+    "network": false,
+    "shell": true
+  },
+  "lastAudited": "2026-02-15",
+  "dependencies": [
+    "skill-auditor",
+    "tinman"
+  ]
+}
