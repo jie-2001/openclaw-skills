@@ -1,8 +1,10 @@
 ---
 name: memory-optimizer
 description: 记忆优化器 - 自动压缩过长的对话记忆，创建优秀记忆文件，减少加载时间
-metadata: { "openclaw": { "emoji": "🧠", "requires": { "bins": ["jq", "rg"] } } }
+metadata: { "openclaw": { "emoji": "🧠", "version": "1.0.1", "requires": { "bins": ["jq", "rg"] } } }
 ---
+
+> **测试版本 v1.0.1** - 用于测试 word_update Skill
 
 # memory-optimizer
 
