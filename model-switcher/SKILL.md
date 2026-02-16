@@ -26,13 +26,13 @@ _在对话中自由切换模型_
 - `custom-integrate-api-nvidia-com/z-ai/glm4.7` - GLM-4.7
 - `custom-integrate-api-nvidia-com/moonshotai/kimi-k2.5` - Kimi K2.5
 
-## 操作流程（重要修正）
+## 操作流程
 
 ### 步骤 1：用户触发
 用户说"切换模型"或类似话语。
 
 ### 步骤 2：展示列表（必须步骤）
-**必须先展示可用模型列表**，不能直接切换。回复格式：
+**必须先展示可用模型列表**，不能直接切换：
 
 ```
 📋 可用模型列表：
@@ -52,118 +52,65 @@ _在对话中自由切换模型_
 ```
 
 ### 步骤 3：等待用户选择
-**必须等待用户明确选择**后才能执行切换，不能替用户做决定。
+**必须等待用户明确选择**后才能执行切换。
 
 ### 步骤 4：执行切换
-使用 `session_status` 工具的 `model` 参数进行切换：
-
-```json
-{
-  "model": "ollama/qwen3:30b"
-}
-```
+使用 `session_status` 工具的 `model` 参数进行切换。
 
 ### 步骤 5：调整 Memory Hook（关键步骤）
 
-切换模型后，**必须**根据模型类型自动调整 session-memory hook：
+**⚠️ 切换模型后必须立即执行 Hook 调整！**
 
 #### 判断模型类型
 - **本地模型**：ID 以 `ollama/` 开头
 - **云端模型**：其他所有模型
 
-#### 执行调整
+#### 切换到本地模型时
+1. 先将当前对话重要信息写入 memory 文件（使用 write 工具）
+2. 然后修改配置文件关闭 Hook：
 
-**切换到本地模型时**：
-1. 先执行一次记忆保存（调用 write 工具将当前对话重要信息写入 memory 文件）
-2. 然后使用 `gateway` 工具的 `config.patch` 关闭 hook：
-
-```json
-{
-  "action": "config.patch",
-  "patch": {
-    "hooks": {
-      "internal": {
-        "entries": {
-          "session-memory": {
-            "enabled": false
-          }
-        }
-      }
-    }
-  },
-  "note": "已为本地模型关闭 session-memory hook"
-}
+```bash
+# 使用 exec 工具修改配置
+cd ~/.openclaw && cat openclaw.json | python3 -c "
+import json,sys
+d = json.load(sys.stdin)
+d['hooks']['internal']['entries']['session-memory']['enabled'] = False
+with open('openclaw.json', 'w') as f:
+    json.dump(d, f, indent=2)
+print('Hook 已关闭')
+"
 ```
 
-**切换到云端模型时**：
-先获取当前 hook 状态（通过 `gateway config.get`），然后：
-- 如果 hook 已关闭 → 开启 hook
-- 如果 hook 已开启 → 不做任何修改
+#### 切换到云端模型时
+1. 检查当前 Hook 状态
+2. 如果是 false，则开启 Hook：
 
-使用 `gateway` 工具的 `config.patch` 开启 hook（如果需要）：
-
-```json
-{
-  "action": "config.patch",
-  "patch": {
-    "hooks": {
-      "internal": {
-        "entries": {
-          "session-memory": {
-            "enabled": true
-          }
-        }
-      }
-    }
-  },
-  "note": "已为云端模型开启 session-memory hook"
-}
+```bash
+# 使用 exec 工具修改配置
+cd ~/.openclaw && cat openclaw.json | python3 -c "
+import json,sys
+d = json.load(sys.stdin)
+d['hooks']['internal']['entries']['session-memory']['enabled'] = True
+with open('openclaw.json', 'w') as f:
+    json.dump(d, f, indent=2)
+print('Hook 已开启')
+"
 ```
 
 ### 步骤 6：确认切换
-告诉用户切换成功（本地模型）：
-```
-✅ 模型已切换为【Qwen3-30B (本地)】
-- 此切换仅在当前会话中生效
-- 关闭对话后将恢复为默认模型
-- 您的配置和记忆不受影响
-- 已自动保存当前对话到 memory
-- session-memory hook 已关闭（本地模型）
-```
-
-或（云端模型）：
-```
-✅ 模型已切换为【MiniMax M2.5 (云端)】
-- 此切换仅在当前会话中生效
-- 关闭对话后将恢复为默认模型
-- 您的配置和记忆不受影响
-- session-memory hook 已开启（云端模型）
-```
+告诉用户切换成功，包括 Hook 状态。
 
 ## 关键规则
 
 1. **必须展示列表**：当用户说"切换模型"时，必须先展示可用模型列表
-2. **必须等待选择**：不能直接替用户选择，必须等用户明确回复编号或名称
-3. **使用完整 ID**：切换时必须使用完整的模型 ID（如 `ollama/qwen3:30b`），不能使用简称
-4. **临时切换**：模型切换仅在当前会话中有效
-5. **Hook 自动调整逻辑**：
-   - 切换到本地模型（`ollama/*`）时：
-     - **必须先**将当前对话中的重要信息写入 memory 文件
-     - 然后关闭 `session-memory` hook
-   - 切换到云端模型时：
-     - 检查 hook 当前状态
-     - 如果已关闭则开启，如果已开启则不动
+2. **必须等待选择**：不能直接替用户选择
+3. **使用完整 ID**：切换时必须使用完整的模型 ID
+4. **Hook 自动调整**：
+   - 本地模型 → 关闭 Hook
+   - 云端模型 → 开启 Hook（如果当前是关闭状态）
 
 ## 注意事项
 
 - 本地模型需要 Ollama 服务运行
-- 联网模型需要网络连接
 - 切换模型后，当前对话上下文可能需要重新理解
-
-## 常见错误修正
-
-| 错误做法 | 正确做法 |
-|----------|----------|
-| 用户说"切换模型"后直接切换 | 必须先展示列表 |
-| 使用简称如"qwen" | 使用完整 ID 如 `ollama/qwen3:30b` |
-| 替用户做决定 | 等待用户明确选择 |
+- Hook 配置是持久化的，必须手动调整
