@@ -74,7 +74,8 @@ _在对话中自由切换模型_
 #### 执行调整
 
 **切换到本地模型时**：
-使用 `gateway` 工具的 `config.patch` 关闭 hook：
+1. 先执行一次记忆保存（调用 write 工具将当前对话重要信息写入 memory 文件）
+2. 然后使用 `gateway` 工具的 `config.patch` 关闭 hook：
 
 ```json
 {
@@ -95,7 +96,11 @@ _在对话中自由切换模型_
 ```
 
 **切换到云端模型时**：
-使用 `gateway` 工具的 `config.patch` 开启 hook：
+先获取当前 hook 状态（通过 `gateway config.get`），然后：
+- 如果 hook 已关闭 → 开启 hook
+- 如果 hook 已开启 → 不做任何修改
+
+使用 `gateway` 工具的 `config.patch` 开启 hook（如果需要）：
 
 ```json
 {
@@ -122,6 +127,7 @@ _在对话中自由切换模型_
 - 此切换仅在当前会话中生效
 - 关闭对话后将恢复为默认模型
 - 您的配置和记忆不受影响
+- 已自动保存当前对话到 memory
 - session-memory hook 已关闭（本地模型）
 ```
 
@@ -140,9 +146,13 @@ _在对话中自由切换模型_
 2. **必须等待选择**：不能直接替用户选择，必须等用户明确回复编号或名称
 3. **使用完整 ID**：切换时必须使用完整的模型 ID（如 `ollama/qwen3:30b`），不能使用简称
 4. **临时切换**：模型切换仅在当前会话中有效
-5. **自动调整 Hook**：
-   - 切换到本地模型（`ollama/*`）时，必须调用 `gateway config.patch` 关闭 `session-memory` hook
-   - 切换到云端模型时，必须调用 `gateway config.patch` 开启 `session-memory` hook
+5. **Hook 自动调整逻辑**：
+   - 切换到本地模型（`ollama/*`）时：
+     - **必须先**将当前对话中的重要信息写入 memory 文件
+     - 然后关闭 `session-memory` hook
+   - 切换到云端模型时：
+     - 检查 hook 当前状态
+     - 如果已关闭则开启，如果已开启则不动
 
 ## 注意事项
 
