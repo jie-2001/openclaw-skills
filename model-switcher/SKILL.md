@@ -11,14 +11,14 @@ _在对话中自由切换模型_
 - "切换到 XXX 模型"
 - "用 XXX 模型"
 
-## 可用模型列表
+## 模型分类
 
 ### 本地模型 (Ollama)
 - `ollama/qwen3:30b` - Qwen3-30B (本地)
 - `ollama/qwen3:8b` - Qwen3-8B (本地)
 - `ollama/qwen3-coder:30b` - Qwen3-Coder-30B (本地)
 
-### 联网模型
+### 云端模型
 - `minimax-portal/MiniMax-M2.5` - MiniMax M2.5 (200K context)
 - `minimax-portal/MiniMax-M2.1` - MiniMax M2.1
 - `qwen-portal/coder-model` - Qwen Coder
@@ -63,13 +63,75 @@ _在对话中自由切换模型_
 }
 ```
 
-### 步骤 5：确认切换
-告诉用户切换成功：
+### 步骤 5：调整 Memory Hook（关键步骤）
+
+切换模型后，**必须**根据模型类型自动调整 session-memory hook：
+
+#### 判断模型类型
+- **本地模型**：ID 以 `ollama/` 开头
+- **云端模型**：其他所有模型
+
+#### 执行调整
+
+**切换到本地模型时**：
+使用 `gateway` 工具的 `config.patch` 关闭 hook：
+
+```json
+{
+  "action": "config.patch",
+  "patch": {
+    "hooks": {
+      "internal": {
+        "entries": {
+          "session-memory": {
+            "enabled": false
+          }
+        }
+      }
+    }
+  },
+  "note": "已为本地模型关闭 session-memory hook"
+}
+```
+
+**切换到云端模型时**：
+使用 `gateway` 工具的 `config.patch` 开启 hook：
+
+```json
+{
+  "action": "config.patch",
+  "patch": {
+    "hooks": {
+      "internal": {
+        "entries": {
+          "session-memory": {
+            "enabled": true
+          }
+        }
+      }
+    }
+  },
+  "note": "已为云端模型开启 session-memory hook"
+}
+```
+
+### 步骤 6：确认切换
+告诉用户切换成功（本地模型）：
 ```
 ✅ 模型已切换为【Qwen3-30B (本地)】
 - 此切换仅在当前会话中生效
 - 关闭对话后将恢复为默认模型
 - 您的配置和记忆不受影响
+- session-memory hook 已关闭（本地模型）
+```
+
+或（云端模型）：
+```
+✅ 模型已切换为【MiniMax M2.5 (云端)】
+- 此切换仅在当前会话中生效
+- 关闭对话后将恢复为默认模型
+- 您的配置和记忆不受影响
+- session-memory hook 已开启（云端模型）
 ```
 
 ## 关键规则
@@ -78,6 +140,9 @@ _在对话中自由切换模型_
 2. **必须等待选择**：不能直接替用户选择，必须等用户明确回复编号或名称
 3. **使用完整 ID**：切换时必须使用完整的模型 ID（如 `ollama/qwen3:30b`），不能使用简称
 4. **临时切换**：模型切换仅在当前会话中有效
+5. **自动调整 Hook**：
+   - 切换到本地模型（`ollama/*`）时，必须调用 `gateway config.patch` 关闭 `session-memory` hook
+   - 切换到云端模型时，必须调用 `gateway config.patch` 开启 `session-memory` hook
 
 ## 注意事项
 
