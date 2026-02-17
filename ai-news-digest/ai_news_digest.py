@@ -88,7 +88,7 @@ def fetch_rss(url: str) -> list:
     return results
 
 def generate_chinese_summary(news: list) -> str:
-    """生成中文摘要 - 新格式"""
+    """生成中文摘要 - 飞书优化格式"""
     if not news:
         return "📭 暂无最新 AI 资讯"
     
@@ -96,7 +96,7 @@ def generate_chinese_summary(news: list) -> str:
     
     # 今天的日期
     today = datetime.now().strftime("%Y-%m-%d")
-    yesterday = (datetime.now().replace(hour=0, minute=0, second=0)).strftime("%Y-%m-%d")
+    yesterday = (datetime.now().replace(hour=0, minute=0, second=0) - __import__('datetime').timedelta(days=1)).strftime("%Y-%m-%d")
     
     # 归类关键词
     categories = {
@@ -115,7 +115,7 @@ def generate_chinese_summary(news: list) -> str:
                 return cat
         return "AI资讯"
     
-    # 生成消息
+    # 生成消息 - 飞书优化格式（不用表格，用列表）
     msg = f"""🤖 **今日 AI 要闻** ({yesterday})
 
 ---
@@ -132,20 +132,18 @@ def generate_chinese_summary(news: list) -> str:
         
         # 生成详细描述
         desc = title
-        # 简化英文为中文描述
-        if len(title) > 60:
-            desc = title[:60] + "..."
+        if len(title) > 80:
+            desc = title[:80] + "..."
         
         msg += f"""**{i}. {title}**
 
-📝 {desc}
+{desc}
 
-📊 表格信息:
-| 发布时间 | 来源 | 归类 |
-|----------|------|------|
-| {yesterday} | {source} | {category} |
+- 📅 发布时间：{yesterday}
+- 📰 来源：{source}
+- 🏷️ 归类：{category}
 
-🔗 链接: {link}
+🔗 链接：{link}
 
 ---
 
