@@ -88,55 +88,71 @@ def fetch_rss(url: str) -> list:
     return results
 
 def generate_chinese_summary(news: list) -> str:
-    """使用简单规则生成中文摘要（不依赖外部 LLM）"""
+    """生成中文摘要 - 新格式"""
     if not news:
         return "📭 暂无最新 AI 资讯"
     
-    # 提取所有标题
-    titles = [n['title'] for n in news[:5]]
-    titles_text = "\n".join([f"{i+1}. {t}" for i, t in enumerate(titles)])
+    from datetime import datetime
     
-    # 生成中文标题和摘要
-    summary_parts = []
+    # 今天的日期
+    today = datetime.now().strftime("%Y-%m-%d")
+    yesterday = (datetime.now().replace(hour=0, minute=0, second=0)).strftime("%Y-%m-%d")
+    
+    # 归类关键词
+    categories = {
+        "AI模型发布": ["GPT", "model", "launch", "release", "introduce", "Gemini", "Claude", "Llama", "发布", "模型"],
+        "AI更新": ["update", "upgrade", "improve", "new feature", "更新", "升级", "优化"],
+        "AI新逻辑概念": ["reasoning", "agent", "architecture", "framework", "concept", "逻辑", "推理", "智能体"],
+        "AI软件爆火": ["viral", "trending", "popular", "million", "用户", "爆火", "流行"],
+        "AI安全": ["safety", "security", "privacy", "protect", "安全", "隐私"],
+        "AI研究": ["research", "paper", "study", "发现", "研究", "论文"],
+    }
+    
+    def categorize(title):
+        title_lower = title.lower()
+        for cat, keywords in categories.items():
+            if any(k.lower() in title_lower for k in keywords):
+                return cat
+        return "AI资讯"
+    
+    # 生成消息
+    msg = f"""🤖 **今日 AI 要闻** ({yesterday})
+
+---
+
+"""
     
     for i, item in enumerate(news[:5], 1):
         title = item['title']
+        link = item.get('link', '')
         source = item.get('source', '未知')
         
-        # 简单翻译/概括（基于关键词）
-        cn_title = title
-        keywords_cn = {
-            "GPT": "GPT",
-            "OpenAI": "OpenAI",
-            "model": "模型",
-            "AI": "AI",
-            "launch": "发布",
-            "introducing": "推出",
-            "new": "新",
-            "introduces": "发布",
-            "releases": "发布",
-            "announces": "宣布",
-        }
+        # 分类
+        category = categorize(title)
         
-        # 生成手机端友好的简短的标题
-        # 简化英文标题为更短的描述
-        if len(title) > 40:
-            # 取前40字符
-            cn_title = title[:40] + "..."
+        # 生成详细描述
+        desc = title
+        # 简化英文为中文描述
+        if len(title) > 60:
+            desc = title[:60] + "..."
         
-        # 添加emoji和格式
-        summary_parts.append(f"📌 **{cn_title}**\n   📍 {source}")
-    
-    # 组装消息
-    msg = """🤖 **今日 AI 要闻** 📰
+        msg += f"""**{i}. {title}**
 
-"""
-    msg += "\n\n".join(summary_parts)
-    msg += """
+📝 {desc}
+
+📊 表格信息:
+| 发布时间 | 来源 | 归类 |
+|----------|------|------|
+| {yesterday} | {source} | {category} |
+
+🔗 链接: {link}
 
 ---
-💡 了解更多点击链接查看原文"""
 
+"""
+    
+    msg += """💡 了解更多点击上方链接"""
+    
     return msg
 
 def fetch_all_news() -> list:
