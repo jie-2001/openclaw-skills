@@ -46,7 +46,7 @@ python3 ~/.openclaw/skills/word_update/word_update.py --desc "<更新描述>" --
 示例：
 ```
 # 更新版本记录（追加新版本）
-feishu_doc --action append --doc_token <文档ID> --content "## v1.0.1 (2026-02-16)\n\n更新内容..."
+feishu_doc --action append --doc_token <文档ID> --content "## v1.0.2 (2026-02-16)\n\n更新内容..."
 
 # 更新主管理表
 feishu_doc --action write --doc_token YMr1dySwToBwSpxTJrpcNZODnCc --content "..."
