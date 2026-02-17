@@ -4,7 +4,7 @@ description: 文件清理器 - 自动清理无用文件，智能识别需确认�
 metadata: { "openclaw": { "emoji": "🧹", "version": "1.0.1" } }
 ---
 
-> **测试版本 v1.0.1** - 用于测试 word_update Skill
+> **测试版本 v1.0.2** - 用于测试 word_update Skill
 metadata: { "openclaw": { "emoji": "🧹", "requires": { "bins": ["jq", "du", "find"] } } }
 ---
 
