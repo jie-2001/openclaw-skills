@@ -1,0 +1,9 @@
+{
+    "check_interval": 30,
+    "critical_ports": [8188, 11434, 8080],
+    "notification_enabled": true,
+    "notify_on_recover": false,
+    "wsl_ip": "auto",
+    "windows_ip": "auto",
+    "feishu_webhook": ""
+}
