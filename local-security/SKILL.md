@@ -1,6 +1,6 @@
 ---
 name: local-guardian
-version: 1.0.0
+version: 1.0.1
 description: 本地安全防线 skill - 提供第二层安全防护，包括安装前审计、实时监控、文件完整性检查
 author: local
 category: Security
